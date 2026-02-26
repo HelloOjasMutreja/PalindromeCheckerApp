@@ -3,80 +3,77 @@ import java.util.*;
 public class PalindromeCheckerApp {
 
     public static void main(String[] args) {
-        String input = "level";
+        String input = "A man a plan a canal Panama";
 
-        // Choose strategy at runtime
-        PalindromeStrategy strategy;
+        // Normalize (optional but fair for all strategies)
+        String normalized = input.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
 
-        // You can switch strategies here:
-        // strategy = new StackStrategy();
-        strategy = new DequeStrategy();
-
-        // Execute selected strategy
-        boolean isPalindrome = strategy.check(input);
-
-        // Display result
         System.out.println("Input : " + input);
-        System.out.println("Is Palindrome? : " + isPalindrome);
-    }
-}
 
-// =======================
-// STRATEGY INTERFACE
-// =======================
-interface PalindromeStrategy {
-    boolean check(String input);
-}
-
-// =======================
-// STACK-BASED STRATEGY
-// =======================
-class StackStrategy implements PalindromeStrategy {
-
-    @Override
-    public boolean check(String input) {
-        if (input == null) return false;
-
-        Stack<Character> stack = new Stack<>();
-
-        // Push all characters
-        for (char c : input.toCharArray()) {
-            stack.push(c);
+        // Warm-up (helps reduce JVM warm-up noise)
+        for (int i = 0; i < 1000; i++) {
+            isPalindromeTwoPointer(normalized);
+            isPalindromeStack(normalized);
+            isPalindromeDeque(normalized);
         }
 
-        // Pop and compare
-        for (char c : input.toCharArray()) {
-            if (stack.pop() != c) {
-                return false;
-            }
+        // Benchmark Two-Pointer
+        long start = System.nanoTime();
+        boolean r1 = isPalindromeTwoPointer(normalized);
+        long end = System.nanoTime();
+        long t1 = end - start;
+
+        // Benchmark Stack
+        start = System.nanoTime();
+        boolean r2 = isPalindromeStack(normalized);
+        end = System.nanoTime();
+        long t2 = end - start;
+
+        // Benchmark Deque
+        start = System.nanoTime();
+        boolean r3 = isPalindromeDeque(normalized);
+        end = System.nanoTime();
+        long t3 = end - start;
+
+        // Display results
+        System.out.println("Two-Pointer Result : " + r1 + " | Time : " + t1 + " ns");
+        System.out.println("Stack Result       : " + r2 + " | Time : " + t2 + " ns");
+        System.out.println("Deque Result       : " + r3 + " | Time : " + t3 + " ns");
+    }
+
+    // -----------------------------
+    // Algorithm 1: Two-Pointer
+    // -----------------------------
+    static boolean isPalindromeTwoPointer(String s) {
+        int i = 0, j = s.length() - 1;
+        while (i < j) {
+            if (s.charAt(i) != s.charAt(j)) return false;
+            i++;
+            j--;
         }
         return true;
     }
-}
 
-// =======================
-// DEQUE-BASED STRATEGY
-// =======================
-class DequeStrategy implements PalindromeStrategy {
-
-    @Override
-    public boolean check(String input) {
-        if (input == null) return false;
-
-        Deque<Character> deque = new ArrayDeque<>();
-
-        // Add all characters
-        for (char c : input.toCharArray()) {
-            deque.addLast(c);
+    // -----------------------------
+    // Algorithm 2: Stack-based
+    // -----------------------------
+    static boolean isPalindromeStack(String s) {
+        Stack<Character> stack = new Stack<>();
+        for (char c : s.toCharArray()) stack.push(c);
+        for (char c : s.toCharArray()) {
+            if (stack.pop() != c) return false;
         }
+        return true;
+    }
 
-        // Compare front and rear
+    // -----------------------------
+    // Algorithm 3: Deque-based
+    // -----------------------------
+    static boolean isPalindromeDeque(String s) {
+        Deque<Character> deque = new ArrayDeque<>();
+        for (char c : s.toCharArray()) deque.addLast(c);
         while (deque.size() > 1) {
-            char front = deque.removeFirst();
-            char rear = deque.removeLast();
-            if (front != rear) {
-                return false;
-            }
+            if (deque.removeFirst() != deque.removeLast()) return false;
         }
         return true;
     }

@@ -1,19 +1,19 @@
+import java.util.*;
+
 public class PalindromeCheckerApp {
 
-    /**
-     * Application entry point for UC11.
-     *
-     * @param args Command-line arguments
-     */
     public static void main(String[] args) {
+        String input = "level";
 
-        String input = "radar";
+        // Choose strategy at runtime
+        PalindromeStrategy strategy;
 
-        // Create service instance
-        PalindromeService service = new PalindromeService();
+        // You can switch strategies here:
+        // strategy = new StackStrategy();
+        strategy = new DequeStrategy();
 
-        // Use the service to check palindrome
-        boolean isPalindrome = service.checkPalindrome(input);
+        // Execute selected strategy
+        boolean isPalindrome = strategy.check(input);
 
         // Display result
         System.out.println("Input : " + input);
@@ -21,31 +21,62 @@ public class PalindromeCheckerApp {
     }
 }
 
-/**
- * Service class that contains palindrome logic.
- * Demonstrates encapsulation and single responsibility.
- */
-class PalindromeService {
+// =======================
+// STRATEGY INTERFACE
+// =======================
+interface PalindromeStrategy {
+    boolean check(String input);
+}
 
-    /**
-     * Checks whether the input string is a palindrome.
-     *
-     * @param input Input string
-     * @return true if palindrome, false otherwise
-     */
-    public boolean checkPalindrome(String input) {
+// =======================
+// STACK-BASED STRATEGY
+// =======================
+class StackStrategy implements PalindromeStrategy {
+
+    @Override
+    public boolean check(String input) {
         if (input == null) return false;
 
-        int start = 0;
-        int end = input.length() - 1;
+        Stack<Character> stack = new Stack<>();
 
-        // Compare characters moving inward
-        while (start < end) {
-            if (input.charAt(start) != input.charAt(end)) {
+        // Push all characters
+        for (char c : input.toCharArray()) {
+            stack.push(c);
+        }
+
+        // Pop and compare
+        for (char c : input.toCharArray()) {
+            if (stack.pop() != c) {
                 return false;
             }
-            start++;
-            end--;
+        }
+        return true;
+    }
+}
+
+// =======================
+// DEQUE-BASED STRATEGY
+// =======================
+class DequeStrategy implements PalindromeStrategy {
+
+    @Override
+    public boolean check(String input) {
+        if (input == null) return false;
+
+        Deque<Character> deque = new ArrayDeque<>();
+
+        // Add all characters
+        for (char c : input.toCharArray()) {
+            deque.addLast(c);
+        }
+
+        // Compare front and rear
+        while (deque.size() > 1) {
+            char front = deque.removeFirst();
+            char rear = deque.removeLast();
+            if (front != rear) {
+                return false;
+            }
         }
         return true;
     }
